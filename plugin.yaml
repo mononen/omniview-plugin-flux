@@ -1,0 +1,26 @@
+id: flux
+version: 0.1.0
+name: Flux CD
+icon: SiFluxcd
+description: Flux CD is a continuous delivery tool for Kubernetes that ensures the cluster state matches the desired state defined in Git.
+repository: github.com/mononen/omniview-flux-plugin
+website: fluxcd.io
+category: cloud
+license: Apache-2.0
+author:
+    name: Alex Mononen
+    email: alex@mononen.dev
+    url: https://mononen.dev
+maintainers:
+    - name: Alex Mononen
+      email: alex@mononen.dev
+tags:
+    - flux
+    - gitops
+    - continuous-delivery
+    - kubernetes
+capabilities:
+    - ui
+theme:
+    colors:
+        primary: '#5468FF'
