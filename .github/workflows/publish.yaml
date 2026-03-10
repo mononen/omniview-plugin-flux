@@ -1,0 +1,46 @@
+name: Publish Plugin
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Build UI
+        run: |
+          cd ui
+          pnpm install
+          pnpm build
+
+      - name: Prepare artifact
+        # Ensure the dist/ directory contains plugin.yaml and the built UI.
+        # Omniview expects the UI assets to be in a 'ui' subdirectory.
+        run: |
+          mkdir -p dist/ui
+          cp plugin.yaml dist/
+          cp -rv ui/dist/* dist/ui/
+
+      - name: Publish Plugin
+        uses: omniviewdev/publish-plugin-action@v1
+        with:
+          api-key: ${{ secrets.OMNIVIEW_API_KEY }}
+          publisher-slug: mononen
+          plugin-id: flux
+          version: ${{ github.ref_name }}
+          artifact-path: dist/
+          architectures: darwin_arm64,linux_amd64

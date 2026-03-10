@@ -1,5 +1,10 @@
 import { PluginWindow } from '@omniviewdev/runtime';
-import type { ExtensionPointSettings, ExtensionRegistration } from '@omniviewdev/runtime';
+import type { ExtensionPointSettings, RegisterOpts } from '@omniviewdev/runtime';
+
+type ExtensionRegistration = {
+  extensionPointId: string;
+  registration: RegisterOpts<any>;
+};
 import FluxResourceSidebar from './components/FluxResourceSidebar';
 
 const extensionPoints: ExtensionPointSettings[] = [];
