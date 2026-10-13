@@ -1,6 +1,8 @@
 PLUGIN_ID := flux
 # The plugin is UI-only, so every platform gets the same archive.
-PLATFORMS ?= darwin_arm64 linux_amd64
+PLATFORMS ?= darwin_arm64 darwin_amd64 linux_amd64 linux_arm64 windows_amd64
+# Releases pass the tag here; the default is whatever plugin.yaml says.
+VERSION ?= $(shell sed -n 's/^version: *//p' plugin.yaml)
 
 .PHONY: init build package clean
 
@@ -16,7 +18,7 @@ build: init
 package: build
 	rm -rf dist
 	mkdir -p dist/pkg/assets dist/pkg/bin
-	cp plugin.yaml dist/pkg/
+	sed "s/^version: .*/version: $(VERSION)/" plugin.yaml > dist/pkg/plugin.yaml
 	cp -R ui/dist/assets/. dist/pkg/assets/
 	for platform in $(PLATFORMS); do \
 		COPYFILE_DISABLE=1 tar -czf dist/$(PLUGIN_ID)-$$platform.tar.gz -C dist/pkg plugin.yaml assets bin; \

@@ -1,12 +1,22 @@
 name: Publish Plugin
 
+# Publishes to the marketplace in the OMNIVIEW_API_URL repository variable.
+# The tag is the version: push v1.2.3 and 1.2.3 is what gets published.
+
 on:
   push:
-    tags:
-      - 'v*'
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish (e.g. 0.2.0)'
+        required: true
+
+permissions:
+  contents: write
 
 env:
-  PLATFORMS: darwin_arm64 linux_amd64
+  PLATFORMS: darwin_arm64 darwin_amd64 linux_amd64 linux_arm64 windows_amd64
 
 jobs:
   publish:
@@ -14,45 +24,53 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Check release configuration
-        # Without api-url the publish action falls back to the upstream marketplace.
+      - name: Resolve version
+        id: version
         env:
+          RAW: ${{ github.event_name == 'push' && github.ref_name || inputs.version }}
           OMNIVIEW_API_URL: ${{ vars.OMNIVIEW_API_URL }}
         run: |
+          # Without api-url the publish action falls back to the upstream marketplace.
           if [ -z "$OMNIVIEW_API_URL" ]; then
             echo "::error::Repository variable OMNIVIEW_API_URL is not set"
             exit 1
           fi
-          version=$(sed -n 's/^version: *//p' plugin.yaml)
-          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
-            echo "::error::Tag $GITHUB_REF_NAME does not match plugin.yaml version $version"
+          version="${RAW#v}"
+          if ! echo "$version" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$'; then
+            echo "::error::'$RAW' is not a semantic version"
             exit 1
           fi
+          echo "value=$version" >> "$GITHUB_OUTPUT"
+          echo "platforms=${PLATFORMS// /,}" >> "$GITHUB_OUTPUT"
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v4
         with:
           version: 10
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 24
+          cache: pnpm
+          cache-dependency-path: ui/pnpm-lock.yaml
 
-      - name: Package
-        run: make package PLATFORMS="$PLATFORMS"
+      - name: Build and package
+        run: make package VERSION="${{ steps.version.outputs.value }}" PLATFORMS="$PLATFORMS"
 
-      - name: Join platforms
-        id: platforms
-        run: echo "list=${PLATFORMS// /,}" >> "$GITHUB_OUTPUT"
-
-      - name: Publish Plugin
+      - name: Publish to marketplace
         uses: omniviewdev/publish-plugin-action@v1
         with:
           api-key: ${{ secrets.OMNIVIEW_API_KEY }}
           api-url: ${{ vars.OMNIVIEW_API_URL }}
           publisher-slug: mononen
           plugin-id: flux
-          version: ${{ github.ref_name }}
+          version: ${{ steps.version.outputs.value }}
           artifact-path: dist/
-          architectures: ${{ steps.platforms.outputs.list }}
+          architectures: ${{ steps.version.outputs.platforms }}
+
+      - name: Create GitHub release
+        if: github.event_name == 'push'
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          files: dist/*.tar.gz
