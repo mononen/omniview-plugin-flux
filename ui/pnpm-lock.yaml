@@ -18,11 +18,11 @@ importers:
         specifier: ^7.3.8
         version: 7.3.9(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.4))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.4))(@types/react@19.2.14)(react@19.2.4))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@omniviewdev/runtime':
-        specifier: ^0.2.0
-        version: 0.2.1
+        specifier: ^0.3.0
+        version: 0.3.0
       '@omniviewdev/ui':
-        specifier: ^0.2.0
-        version: 0.2.1(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.4))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.4))(@types/react@19.2.14)(react@19.2.4))(@mui/icons-material@7.3.9(@mui/material@7.3.9(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.4))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.4))(@types/react@19.2.14)(react@19.2.4))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(@types/react@19.2.14)(react@19.2.4))(@mui/material@7.3.9(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.4))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.4))(@types/react@19.2.14)(react@19.2.4))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react-icons@5.6.0(react@19.2.4))(react@19.2.4)
+        specifier: ^0.3.0
+        version: 0.3.0(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.4))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.4))(@types/react@19.2.14)(react@19.2.4))(@mui/icons-material@7.3.9(@mui/material@7.3.9(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.4))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.4))(@types/react@19.2.14)(react@19.2.4))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(@types/react@19.2.14)(react@19.2.4))(@mui/material@7.3.9(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.4))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.4))(@types/react@19.2.14)(react@19.2.4))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react-icons@5.6.0(react@19.2.4))(react@19.2.4)
       react:
         specifier: ^19.0.0
         version: 19.2.4
@@ -37,8 +37,8 @@ importers:
         version: 2.8.2
     devDependencies:
       '@omniviewdev/vite-plugin':
-        specifier: ^0.2.0
-        version: 0.2.1(vite@5.4.21)
+        specifier: ^0.3.0
+        version: 0.3.0(vite@5.4.21)
       '@types/react':
         specifier: ^19.0.0
         version: 19.2.14
@@ -443,11 +443,11 @@ packages:
       '@types/react':
         optional: true
 
-  '@omniviewdev/runtime@0.2.1':
-    resolution: {integrity: sha512-ICx91OAp5Uj5NgsUXfoYVX2PN/VGIXYLpNG5mnQ9KHhxnEavf1dPy+pmHp/V5PzH3dI18Y1+wuB6MXrkFx4Cpg==}
+  '@omniviewdev/runtime@0.3.0':
+    resolution: {integrity: sha512-0/NYbHHFV+K2UDUkhnNQImyROFbxQORmZ0i3Bo0zI4l8n/0l+G4ZQdzYjK32mEGtabtTC8y7OwkqTbiZ5rqbqA==}
 
-  '@omniviewdev/ui@0.2.1':
-    resolution: {integrity: sha512-+bHZ/pDEBGyZ00nCb9i7NhdcwJTdM4I/E1P2G8CohFnFen38lFR9OV8xbNvsYj22M/fUYOdsyXH/hnxflZs/Ew==}
+  '@omniviewdev/ui@0.3.0':
+    resolution: {integrity: sha512-AYiRnFVerzyaJP5I7bgI8StI0CIQJleNwehdF28qEi1gbakhJUlXthkMuv3vYt79JyVh3Oy+Wzt8XpVdgj2c3w==}
     peerDependencies:
       '@emotion/react': '>=11.0.0'
       '@emotion/styled': '>=11.0.0'
@@ -485,8 +485,8 @@ packages:
       monaco-editor:
         optional: true
 
-  '@omniviewdev/vite-plugin@0.2.1':
-    resolution: {integrity: sha512-txEmYt15C4EAQY9v6KuYU0K3RNpEwN3ML3PbgBmRvf0qIfpXiGBeeKmfeV7MRPpnP8nnH4fsjYhz7gblpSWHmQ==}
+  '@omniviewdev/vite-plugin@0.3.0':
+    resolution: {integrity: sha512-AnV9EhGUC4eAYtlk8U3UNv7q3iD7pqyAzBPDkN9Y+iLEcCVnpTTIyVYweKkKYJJdi7Y1qSJfjW+LDrClJAf8lA==}
     peerDependencies:
       vite: '>=5.0.0'
 
@@ -693,6 +693,7 @@ packages:
 
   '@ungap/structured-clone@1.3.0':
     resolution: {integrity: sha512-WmoN8qaIAo7WTYWbAZuG8PYEhn5fkz7dZrqTBZ7dtt//lL2Gwms1IcnQ5yHqjDfX8Ft5j4YzDM23f87zBfDe9g==}
+    deprecated: Potential CWE-502 - Update to 1.3.1 or higher
 
   '@vitejs/plugin-react@4.7.0':
     resolution: {integrity: sha512-gUu9hwfWvvEDBBmgtAowQCojwZmJ5mcLn3aufeCsitijs3+f2NsrPtlAWIR6OPiqljl96GVCUbLe0HyqIpVaoA==}
@@ -1766,12 +1767,12 @@ snapshots:
     optionalDependencies:
       '@types/react': 19.2.14
 
-  '@omniviewdev/runtime@0.2.1':
+  '@omniviewdev/runtime@0.3.0':
     dependencies:
       lodash.get: 4.4.2
       ts-invariant: 0.10.3
 
-  '@omniviewdev/ui@0.2.1(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.4))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.4))(@types/react@19.2.14)(react@19.2.4))(@mui/icons-material@7.3.9(@mui/material@7.3.9(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.4))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.4))(@types/react@19.2.14)(react@19.2.4))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(@types/react@19.2.14)(react@19.2.4))(@mui/material@7.3.9(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.4))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.4))(@types/react@19.2.14)(react@19.2.4))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react-icons@5.6.0(react@19.2.4))(react@19.2.4)':
+  '@omniviewdev/ui@0.3.0(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.4))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.4))(@types/react@19.2.14)(react@19.2.4))(@mui/icons-material@7.3.9(@mui/material@7.3.9(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.4))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.4))(@types/react@19.2.14)(react@19.2.4))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(@types/react@19.2.14)(react@19.2.4))(@mui/material@7.3.9(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.4))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.4))(@types/react@19.2.14)(react@19.2.4))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react-icons@5.6.0(react@19.2.4))(react@19.2.4)':
     dependencies:
       '@emotion/react': 11.14.0(@types/react@19.2.14)(react@19.2.4)
       '@emotion/styled': 11.14.1(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.4))(@types/react@19.2.14)(react@19.2.4)
@@ -1785,7 +1786,7 @@ snapshots:
       - '@types/react'
       - supports-color
 
-  '@omniviewdev/vite-plugin@0.2.1(vite@5.4.21)':
+  '@omniviewdev/vite-plugin@0.3.0(vite@5.4.21)':
     dependencies:
       vite: 5.4.21
 

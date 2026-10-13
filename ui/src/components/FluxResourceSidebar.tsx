@@ -4,23 +4,14 @@ import { Text } from '@omniviewdev/ui/typography';
 import { Chip } from '@omniviewdev/ui';
 import Divider from '@mui/material/Divider';
 import Box from '@mui/material/Box';
+import { useResource, type DrawerContext } from '@omniviewdev/runtime';
 import { LuCheck, LuX, LuClock, LuGitBranch, LuTag, LuBox, LuLink } from 'react-icons/lu';
 
-type FluxCondition = {
-  type: string;
-  status: string;
-  reason?: string;
-  message?: string;
-  lastTransitionTime?: string;
-};
+import FluxActions from './FluxActions';
+import { KUBERNETES_PLUGIN, type FluxCondition, type FluxObject } from '../flux';
 
 type Props = {
-  plugin: string;
-  resource: string;
-  data: Record<string, unknown>;
-  onSubmit: (data: Record<string, unknown>) => void;
-  onCancel: () => void;
-  useSearch: (...args: unknown[]) => unknown[];
+  ctx: DrawerContext;
 };
 
 const get = (obj: unknown, path: string): unknown => {
@@ -32,8 +23,33 @@ const get = (obj: unknown, path: string): unknown => {
   }, obj);
 };
 
-const FluxResourceSidebar: React.FC<Props> = ({ resource, data }) => {
-  const kind = resource.split('::').pop() ?? resource;
+const FluxResourceSidebar: React.FC<Props> = ({ ctx }) => {
+  const resourceKey = ctx.resource?.key ?? '';
+  const connectionID = ctx.resource?.connectionID ?? '';
+  const initial = (ctx.data ?? {}) as FluxObject;
+
+  // The drawer hands us a snapshot; follow the live object so status and the
+  // suspend state update after an action without reopening the panel.
+  const { resource: live } = useResource({
+    pluginID: KUBERNETES_PLUGIN,
+    connectionID,
+    resourceKey,
+    resourceID: initial.metadata?.name ?? ctx.resource?.id ?? '',
+    namespace: initial.metadata?.namespace ?? '',
+  });
+  const data = ((live.data?.result as FluxObject | undefined) ?? initial) as FluxObject;
+
+  // Single-object queries are not watched, so poll briefly after an action to
+  // pick up the controller's response.
+  const refetch = live.refetch;
+  const timers = React.useRef<number[]>([]);
+  React.useEffect(() => () => timers.current.forEach((t) => window.clearTimeout(t)), []);
+  const onChanged = React.useCallback(() => {
+    void refetch();
+    timers.current.push(...[2000, 6000, 15000].map((ms) => window.setTimeout(() => void refetch(), ms)));
+  }, [refetch]);
+
+  const kind = resourceKey.split('::').pop() ?? resourceKey;
   const name = get(data, 'metadata.name') as string | undefined;
   const namespace = get(data, 'metadata.namespace') as string | undefined;
   const labels = get(data, 'metadata.labels') as Record<string, string> | undefined;
@@ -64,6 +80,10 @@ const FluxResourceSidebar: React.FC<Props> = ({ resource, data }) => {
         )}
         <Text size="xs" color="text.secondary">{kind}</Text>
       </Stack>
+
+      {connectionID && name && (
+        <FluxActions connectionID={connectionID} resourceKey={resourceKey} object={data} onChanged={onChanged} />
+      )}
 
       <Divider />
 
