@@ -5,42 +5,54 @@ on:
     tags:
       - 'v*'
 
+env:
+  PLATFORMS: darwin_arm64 linux_amd64
+
 jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
+      - name: Check release configuration
+        # Without api-url the publish action falls back to the upstream marketplace.
+        env:
+          OMNIVIEW_API_URL: ${{ vars.OMNIVIEW_API_URL }}
+        run: |
+          if [ -z "$OMNIVIEW_API_URL" ]; then
+            echo "::error::Repository variable OMNIVIEW_API_URL is not set"
+            exit 1
+          fi
+          version=$(sed -n 's/^version: *//p' plugin.yaml)
+          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match plugin.yaml version $version"
+            exit 1
+          fi
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: 10
 
-      - name: Build UI
-        run: |
-          cd ui
-          pnpm install
-          pnpm build
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
 
-      - name: Prepare artifact
-        # Ensure the dist/ directory contains plugin.yaml and the built UI.
-        # Omniview expects the UI assets to be in a 'ui' subdirectory.
-        run: |
-          mkdir -p dist/ui
-          cp plugin.yaml dist/
-          cp -rv ui/dist/* dist/ui/
+      - name: Package
+        run: make package PLATFORMS="$PLATFORMS"
+
+      - name: Join platforms
+        id: platforms
+        run: echo "list=${PLATFORMS// /,}" >> "$GITHUB_OUTPUT"
 
       - name: Publish Plugin
         uses: omniviewdev/publish-plugin-action@v1
         with:
           api-key: ${{ secrets.OMNIVIEW_API_KEY }}
+          api-url: ${{ vars.OMNIVIEW_API_URL }}
           publisher-slug: mononen
           plugin-id: flux
           version: ${{ github.ref_name }}
           artifact-path: dist/
-          architectures: darwin_arm64,linux_amd64
+          architectures: ${{ steps.platforms.outputs.list }}
