@@ -4,7 +4,7 @@ import { PluginWindow } from '@omniviewdev/runtime';
 import type { ExtensionPointSettings, ExtensionRegistration } from '@omniviewdev/runtime';
 
 import FluxResourceSidebar from './components/FluxResourceSidebar';
-import GitOpsPage from './components/GitOpsPage';
+import FluxPage, { FLUX_SUB_PAGES } from './components/FluxPage';
 import { FLUX_RESOURCE_KEYS, KUBERNETES_PLUGIN } from './flux';
 
 const extensionPoints: ExtensionPointSettings[] = [];
@@ -29,14 +29,19 @@ export const extensionRegistrations: ExtensionRegistration<any>[] = [
       meta: { pluginId: KUBERNETES_PLUGIN, resourceKey },
     },
   })),
-  // A page in the cluster's side navigation, next to Dashboard.
+  // A page in the cluster's side navigation, next to Dashboard: the overview,
+  // with one sub-entry per commonly used kind.
   {
     extensionPointId: 'kubernetes/cluster/page',
     registration: {
-      id: 'page/gitops',
-      label: 'GitOps',
-      value: GitOpsPage,
-      meta: { path: 'gitops', icon: createElement(LuGitBranch) },
+      id: 'page/flux',
+      label: 'Flux',
+      value: FluxPage,
+      meta: {
+        path: 'flux',
+        icon: createElement(LuGitBranch),
+        children: FLUX_SUB_PAGES.map(({ path, label }) => ({ path, label })),
+      },
     },
   },
 ];
