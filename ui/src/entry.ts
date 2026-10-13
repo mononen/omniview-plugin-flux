@@ -1,8 +1,10 @@
+import { createElement } from 'react';
+import { LuGitBranch } from 'react-icons/lu';
 import { PluginWindow } from '@omniviewdev/runtime';
 import type { ExtensionPointSettings, ExtensionRegistration } from '@omniviewdev/runtime';
 
 import FluxResourceSidebar from './components/FluxResourceSidebar';
-import GitOpsTab from './components/GitOpsTab';
+import GitOpsPage from './components/GitOpsPage';
 import { FLUX_RESOURCE_KEYS, KUBERNETES_PLUGIN } from './flux';
 
 const extensionPoints: ExtensionPointSettings[] = [];
@@ -27,13 +29,14 @@ export const extensionRegistrations: ExtensionRegistration<any>[] = [
       meta: { pluginId: KUBERNETES_PLUGIN, resourceKey },
     },
   })),
+  // A page in the cluster's side navigation, next to Dashboard.
   {
-    extensionPointId: 'omniview/dashboard/tab',
+    extensionPointId: 'kubernetes/cluster/page',
     registration: {
-      id: 'dashboard/gitops',
+      id: 'page/gitops',
       label: 'GitOps',
-      value: GitOpsTab,
-      meta: { path: 'gitops' },
+      value: GitOpsPage,
+      meta: { path: 'gitops', icon: createElement(LuGitBranch) },
     },
   },
 ];

@@ -49,7 +49,7 @@ type Row = { resourceKey: string; kind: string; object: FluxObject };
 
 const centeredSx = { p: 4, width: '100%', textAlign: 'center' } as const;
 
-const GitOpsTab: React.FC<Props> = ({ connectionID }) => {
+const GitOpsPage: React.FC<Props> = ({ connectionID }) => {
   const { types } = useResourceTypes({ pluginID: KUBERNETES_PLUGIN, connectionID });
   const [rowsByKind, setRowsByKind] = React.useState<Record<string, Row[]>>({});
   const [showAll, setShowAll] = React.useState(false);
@@ -208,4 +208,4 @@ const GitOpsRow: React.FC<{ connectionID: string; row: Row & { state: FluxState 
   );
 };
 
-export default GitOpsTab;
+export default GitOpsPage;
