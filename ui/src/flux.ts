@@ -86,8 +86,26 @@ export type FluxObject = {
 
 export type FluxState = 'ready' | 'failed' | 'stalled' | 'reconciling' | 'suspended' | 'unknown';
 
+export const STATE_LABEL: Record<FluxState, string> = {
+  ready: 'Ready',
+  failed: 'Failed',
+  stalled: 'Stalled',
+  reconciling: 'Reconciling',
+  suspended: 'Suspended',
+  unknown: 'Unknown',
+};
+
+/**
+ * Objects no controller reports status for: they are configuration other
+ * objects read, so there is nothing to be ready or failed.
+ */
+export const isStatic = (obj: FluxObject): boolean =>
+  !obj.status?.conditions?.length &&
+  (obj.kind === 'Alert' || obj.kind === 'Provider' || (obj.kind === 'HelmRepository' && obj.spec?.type === 'oci'));
+
 export const fluxState = (obj: FluxObject): FluxState => {
   if (obj.spec?.suspend) return 'suspended';
+  if (isStatic(obj)) return 'ready';
   const conditions = obj.status?.conditions ?? [];
   const is = (type: string, status: string) => conditions.some((c) => c.type === type && c.status === status);
   if (is('Stalled', 'True')) return 'stalled';
@@ -95,8 +113,6 @@ export const fluxState = (obj: FluxObject): FluxState => {
   // A failed object that is being retried reports Reconciling too; it is still failing.
   if (is('Ready', 'False')) return 'failed';
   if (is('Reconciling', 'True') || is('Ready', 'Unknown')) return 'reconciling';
-  // OCI Helm repositories are static: the controller never reports status for them.
-  if (obj.kind === 'HelmRepository' && obj.spec?.type === 'oci') return 'ready';
   return 'unknown';
 };
 
@@ -139,6 +155,24 @@ export const shortRevision = (rev: string): string => {
   const prefix = at >= 0 ? rev.slice(0, at + 1) : '';
   const hash = at >= 0 ? rev.slice(at + 1) : rev;
   return hash.length > 12 ? `${prefix}${hash.slice(0, 12)}` : rev;
+};
+
+/** Kinds outside Flux that Flux objects commonly point at. */
+const CORE_KEYS: Record<string, string> = {
+  Secret: 'core::v1::Secret',
+  ConfigMap: 'core::v1::ConfigMap',
+  ServiceAccount: 'core::v1::ServiceAccount',
+};
+
+/** Resource key for a referenced kind, Flux or core, if the cluster serves it. */
+export const resolveRefKey = (available: Record<string, unknown> | undefined, kind: string): string | undefined =>
+  resolveFluxKey(available, kind) ?? (available && CORE_KEYS[kind] in available ? CORE_KEYS[kind] : undefined);
+
+export const formatBytes = (bytes?: number): string | undefined => {
+  if (bytes === undefined) return undefined;
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KiB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MiB`;
 };
 
 export const timeAgo = (iso?: string): string => {

@@ -21,6 +21,7 @@ import {
   KUBERNETES_PLUGIN,
   OVERVIEW_GROUPS,
   OVERVIEW_KINDS,
+  STATE_LABEL,
   fluxRevision,
   readyCondition,
   shortRevision,
@@ -42,15 +43,6 @@ export const FLUX_SUB_PAGES = [
   { path: 'kustomizations', label: 'Kustomization', kind: 'Kustomization' },
   { path: 'helmreleases', label: 'HelmRelease', kind: 'HelmRelease' },
 ] as const;
-
-const STATE_LABEL: Record<FluxState, string> = {
-  ready: 'Ready',
-  failed: 'Failed',
-  stalled: 'Stalled',
-  reconciling: 'Reconciling',
-  suspended: 'Suspended',
-  unknown: 'Unknown',
-};
 
 const STATE_COLOR: Record<FluxState, 'success' | 'error' | 'info' | 'warning' | 'default'> = {
   ready: 'success',

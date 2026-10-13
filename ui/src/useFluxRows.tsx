@@ -27,7 +27,11 @@ export const useFluxRows = (connectionID: string, kinds: string[]) => {
 
   const rows: Row[] = served
     .flatMap(({ kind, resourceKey }) =>
-      (objectsByKind[kind] ?? []).map((object) => ({ resourceKey, kind, object, state: fluxState(object) })),
+      // Listed objects may come without their kind, which the state rules rely on.
+      (objectsByKind[kind] ?? []).map((listed) => {
+        const object = { ...listed, kind };
+        return { resourceKey, kind, object, state: fluxState(object) };
+      }),
     )
     .sort(
       (a, b) =>
