@@ -87,7 +87,7 @@ const GitOpsPage: React.FC<Props> = ({ connectionID }) => {
   const visible = showAll ? all : notReady;
 
   return (
-    <Stack sx={{ width: '100%', p: 1.5, gap: 1.5 }}>
+    <Stack sx={{ width: '100%', height: '100%', minHeight: 0, p: 1.5, gap: 1.5 }}>
       {kinds.map(({ kind, resourceKey }) => (
         <KindLoader key={resourceKey} kind={kind} resourceKey={resourceKey} connectionID={connectionID} onRows={onRows} />
       ))}
@@ -115,25 +115,28 @@ const GitOpsPage: React.FC<Props> = ({ connectionID }) => {
             : `All ${all.length} Kustomizations and HelmReleases are ready.`}
         </Typography>
       ) : (
-        <Table size="small" stickyHeader>
-          <TableHead>
-            <TableRow>
-              <TableCell>Status</TableCell>
-              <TableCell>Kind</TableCell>
-              <TableCell>Namespace</TableCell>
-              <TableCell>Name</TableCell>
-              <TableCell>Revision</TableCell>
-              <TableCell>Since</TableCell>
-              <TableCell>Message</TableCell>
-              <TableCell />
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {visible.map((row) => (
-              <GitOpsRow key={row.object.metadata?.uid ?? `${row.kind}/${row.object.metadata?.namespace}/${row.object.metadata?.name}`} connectionID={connectionID} row={row} />
-            ))}
-          </TableBody>
-        </Table>
+        // The cluster view clips its main area, so the list scrolls on its own.
+        <Box sx={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
+          <Table size="small" stickyHeader>
+            <TableHead>
+              <TableRow>
+                <TableCell>Status</TableCell>
+                <TableCell>Kind</TableCell>
+                <TableCell>Namespace</TableCell>
+                <TableCell>Name</TableCell>
+                <TableCell>Revision</TableCell>
+                <TableCell>Since</TableCell>
+                <TableCell>Message</TableCell>
+                <TableCell />
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {visible.map((row) => (
+                <GitOpsRow key={row.object.metadata?.uid ?? `${row.kind}/${row.object.metadata?.namespace}/${row.object.metadata?.name}`} connectionID={connectionID} row={row} />
+              ))}
+            </TableBody>
+          </Table>
+        </Box>
       )}
     </Stack>
   );
