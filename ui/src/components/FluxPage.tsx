@@ -1,6 +1,7 @@
 import React from 'react';
 // The host shares the @mui/material root; deep imports would bundle a second copy.
 import {
+  Alert,
   Box,
   Chip,
   Stack,
@@ -13,20 +14,21 @@ import {
   ToggleButtonGroup,
   Typography,
 } from '@mui/material';
-import { usePluginRouter, useResources, useResourceTypes, useRightDrawer } from '@omniviewdev/runtime';
+import { usePluginRouter, useRightDrawer } from '@omniviewdev/runtime';
 
 import FluxActions from './FluxActions';
 import {
   KUBERNETES_PLUGIN,
+  OVERVIEW_GROUPS,
+  OVERVIEW_KINDS,
   fluxRevision,
-  fluxState,
   readyCondition,
-  resolveFluxKey,
   shortRevision,
   timeAgo,
-  type FluxObject,
   type FluxState,
 } from '../flux';
+import { useFluxControllers } from '../useFluxControllers';
+import { countStates, useFluxRows, type Row } from '../useFluxRows';
 
 type Props = {
   pluginID: string;
@@ -40,13 +42,6 @@ export const FLUX_SUB_PAGES = [
   { path: 'kustomizations', label: 'Kustomization', kind: 'Kustomization' },
   { path: 'helmreleases', label: 'HelmRelease', kind: 'HelmRelease' },
 ] as const;
-
-/** What the overview summarises: the things that deploy, then where they come from. */
-const OVERVIEW_GROUPS: Array<{ title: string; kinds: string[]; subPath?: string }> = [
-  { title: 'Kustomizations', kinds: ['Kustomization'], subPath: 'kustomizations' },
-  { title: 'HelmReleases', kinds: ['HelmRelease'], subPath: 'helmreleases' },
-  { title: 'Sources', kinds: ['GitRepository', 'OCIRepository', 'HelmRepository', 'HelmChart', 'Bucket'] },
-];
 
 const STATE_LABEL: Record<FluxState, string> = {
   ready: 'Ready',
@@ -66,11 +61,6 @@ const STATE_COLOR: Record<FluxState, 'success' | 'error' | 'info' | 'warning' | 
   unknown: 'default',
 };
 
-/** Worst first, so the things that need attention sit at the top. */
-const STATE_ORDER: FluxState[] = ['failed', 'stalled', 'reconciling', 'unknown', 'suspended', 'ready'];
-
-type Row = { resourceKey: string; kind: string; object: FluxObject; state: FluxState };
-
 const centeredSx = { p: 4, width: '100%', textAlign: 'center' } as const;
 const pageSx = { width: '100%', height: '100%', minHeight: 0, p: 1.5, gap: 1.5 } as const;
 // The cluster view clips its main area, so lists scroll on their own.
@@ -78,23 +68,14 @@ const scrollSx = { flex: 1, minHeight: 0, overflow: 'auto' } as const;
 
 const FluxPage: React.FC<Props> = ({ connectionID, subPath }) => {
   const subPage = FLUX_SUB_PAGES.find((p) => p.path === subPath);
-  const kinds = React.useMemo(
-    () => (subPage ? [subPage.kind] : OVERVIEW_GROUPS.flatMap((g) => g.kinds)),
-    [subPage],
-  );
+  const kinds = React.useMemo(() => (subPage ? [subPage.kind] : OVERVIEW_KINDS), [subPage]);
   const { loading, installed, rows, loaders } = useFluxRows(connectionID, kinds);
 
   let body: React.ReactNode;
   if (loading) {
     body = <Typography color="text.secondary" sx={centeredSx}>Loading…</Typography>;
   } else if (!installed) {
-    body = (
-      <Typography color="text.secondary" sx={centeredSx}>
-        {subPage
-          ? `This cluster does not serve the ${subPage.kind} resource type.`
-          : 'Flux is not installed on this cluster (no Flux resource types found).'}
-      </Typography>
-    );
+    body = <NotInstalled kind={subPage?.kind} />;
   } else if (subPage) {
     body = <KindList connectionID={connectionID} label={subPage.label} rows={rows} />;
   } else {
@@ -109,64 +90,51 @@ const FluxPage: React.FC<Props> = ({ connectionID, subPath }) => {
   );
 };
 
-/**
- * Watches the given Flux kinds on a connection and returns their objects,
- * worst state first. `loaders` must be rendered: each one subscribes to a
- * resource type the cluster serves.
- */
-const useFluxRows = (connectionID: string, kinds: string[]) => {
-  const { types } = useResourceTypes({ pluginID: KUBERNETES_PLUGIN, connectionID });
-  const [objectsByKind, setObjectsByKind] = React.useState<Record<string, FluxObject[]>>({});
+/** Shown when the cluster serves none of the resource types the page needs. */
+const NotInstalled: React.FC<{ kind?: string }> = ({ kind }) => (
+  <Stack sx={{ ...centeredSx, alignItems: 'center', gap: 0.5 }}>
+    <Typography variant="subtitle1">
+      {kind ? `${kind} is not available on this cluster` : 'Flux is not installed on this cluster'}
+    </Typography>
+    <Typography variant="body2" color="text.secondary">
+      {kind
+        ? `The cluster does not serve the ${kind} resource type. The Flux controller that provides it may not be installed.`
+        : 'None of the Flux resource types were found. Install Flux with `flux bootstrap` or `flux install`, then reopen this page.'}
+    </Typography>
+  </Stack>
+);
 
-  const served = kinds
-    .map((kind) => ({ kind, resourceKey: resolveFluxKey(types.data, kind) }))
-    .filter((k): k is { kind: string; resourceKey: string } => !!k.resourceKey);
+/** Controller versions and readiness, so a broken install is visible before its symptoms. */
+const Controllers: React.FC<{ connectionID: string }> = ({ connectionID }) => {
+  const { known, controllers, fluxVersion } = useFluxControllers(connectionID);
 
-  const onObjects = React.useCallback((kind: string, objects: FluxObject[]) => {
-    setObjectsByKind((prev) => ({ ...prev, [kind]: objects }));
-  }, []);
+  if (!known) return null;
 
-  const rows: Row[] = served
-    .flatMap(({ kind, resourceKey }) =>
-      (objectsByKind[kind] ?? []).map((object) => ({ resourceKey, kind, object, state: fluxState(object) })),
-    )
-    .sort(
-      (a, b) =>
-        STATE_ORDER.indexOf(a.state) - STATE_ORDER.indexOf(b.state) ||
-        a.kind.localeCompare(b.kind) ||
-        (a.object.metadata?.namespace ?? '').localeCompare(b.object.metadata?.namespace ?? '') ||
-        (a.object.metadata?.name ?? '').localeCompare(b.object.metadata?.name ?? ''),
+  if (controllers.length === 0) {
+    return (
+      <Alert severity="warning" sx={{ py: 0 }}>
+        Flux resource types exist on this cluster, but no Flux controllers were found. Nothing will be reconciled.
+      </Alert>
     );
+  }
 
-  const loaders = served.map(({ kind, resourceKey }) => (
-    <KindLoader key={resourceKey} kind={kind} resourceKey={resourceKey} connectionID={connectionID} onObjects={onObjects} />
-  ));
-
-  return { loading: types.isLoading, installed: served.length > 0, rows, loaders };
-};
-
-type KindLoaderProps = {
-  kind: string;
-  resourceKey: string;
-  connectionID: string;
-  onObjects: (kind: string, objects: FluxObject[]) => void;
-};
-
-/** Subscribes to one resource type and reports its objects up; renders nothing. */
-const KindLoader: React.FC<KindLoaderProps> = ({ kind, resourceKey, connectionID, onObjects }) => {
-  const { resources } = useResources({
-    pluginID: KUBERNETES_PLUGIN,
-    connectionID,
-    resourceKey,
-    idAccessor: 'metadata.uid',
-  });
-  const result = resources.data?.result;
-
-  React.useEffect(() => {
-    onObjects(kind, (result ?? []) as FluxObject[]);
-  }, [kind, result, onObjects]);
-
-  return null;
+  return (
+    <Stack direction="row" sx={{ gap: 0.75, flexWrap: 'wrap', alignItems: 'center' }}>
+      <Typography variant="subtitle2" color="text.secondary" sx={{ mr: 0.5 }}>
+        Controllers{fluxVersion ? ` (Flux ${fluxVersion})` : ''}
+      </Typography>
+      {controllers.map((c) => (
+        <Chip
+          key={c.id}
+          size="small"
+          variant="outlined"
+          color={c.ready ? 'success' : 'error'}
+          label={`${c.name}${c.version ? ` ${c.version}` : ''}${c.ready ? '' : ` · ${c.readyReplicas}/${c.replicas} ready`}`}
+          title={`${c.namespace}/${c.name}: ${c.readyReplicas}/${c.replicas} replicas ready`}
+        />
+      ))}
+    </Stack>
+  );
 };
 
 const Overview: React.FC<{ connectionID: string; rows: Row[] }> = ({ connectionID, rows }) => {
@@ -177,11 +145,9 @@ const Overview: React.FC<{ connectionID: string; rows: Row[] }> = ({ connectionI
     <>
       <Stack direction="row" sx={{ gap: 1.5, flexWrap: 'wrap' }}>
         {OVERVIEW_GROUPS.map((group) => {
-          const groupRows = rows.filter((row) => group.kinds.includes(row.kind));
-          const count = (state: FluxState) => groupRows.filter((row) => row.state === state).length;
-          const failing = count('failed') + count('stalled');
-          const pending = count('reconciling') + count('unknown');
-          const suspended = count('suspended');
+          const { total, ready, failing, pending, suspended } = countStates(
+            rows.filter((row) => group.kinds.includes(row.kind)),
+          );
           const subPath = group.subPath;
 
           return (
@@ -199,9 +165,9 @@ const Overview: React.FC<{ connectionID: string; rows: Row[] }> = ({ connectionI
               }}
             >
               <Typography variant="body2" color="text.secondary">{group.title}</Typography>
-              <Typography variant="h4" sx={{ my: 0.5 }}>{groupRows.length}</Typography>
+              <Typography variant="h4" sx={{ my: 0.5 }}>{total}</Typography>
               <Stack direction="row" sx={{ gap: 0.5, flexWrap: 'wrap' }}>
-                <Chip size="small" variant="outlined" color="success" label={`${count('ready')} ready`} />
+                <Chip size="small" variant="outlined" color="success" label={`${ready} ready`} />
                 {failing > 0 && <Chip size="small" variant="outlined" color="error" label={`${failing} failing`} />}
                 {pending > 0 && <Chip size="small" variant="outlined" color="info" label={`${pending} reconciling`} />}
                 {suspended > 0 && <Chip size="small" variant="outlined" color="warning" label={`${suspended} suspended`} />}
@@ -210,6 +176,8 @@ const Overview: React.FC<{ connectionID: string; rows: Row[] }> = ({ connectionI
           );
         })}
       </Stack>
+
+      <Controllers connectionID={connectionID} />
 
       <Typography variant="subtitle2" color="text.secondary">Needs attention ({notReady.length})</Typography>
       {notReady.length === 0 ? (

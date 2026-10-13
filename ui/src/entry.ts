@@ -5,7 +5,8 @@ import type { ExtensionPointSettings, ExtensionRegistration } from '@omniviewdev
 
 import FluxResourceSidebar from './components/FluxResourceSidebar';
 import FluxPage, { FLUX_SUB_PAGES } from './components/FluxPage';
-import { FLUX_RESOURCE_KEYS, KUBERNETES_PLUGIN } from './flux';
+import FluxWidget from './components/FluxWidget';
+import { FLUX_PAGE_PATH, FLUX_RESOURCE_KEYS, KUBERNETES_PLUGIN } from './flux';
 
 const extensionPoints: ExtensionPointSettings[] = [];
 
@@ -38,10 +39,19 @@ export const extensionRegistrations: ExtensionRegistration<any>[] = [
       label: 'Flux',
       value: FluxPage,
       meta: {
-        path: 'flux',
+        path: FLUX_PAGE_PATH,
         icon: createElement(LuGitBranch),
         children: FLUX_SUB_PAGES.map(({ path, label }) => ({ path, label })),
       },
+    },
+  },
+  // A compact health card on the cluster dashboard that links to the page above.
+  {
+    extensionPointId: 'omniview/dashboard/widget',
+    registration: {
+      id: 'widget/flux',
+      label: 'Flux',
+      value: FluxWidget,
     },
   },
 ];

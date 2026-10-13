@@ -1,6 +1,18 @@
 /** The plugin whose connections and resources Flux objects are served by. */
 export const KUBERNETES_PLUGIN = 'kubernetes';
 
+/** Path of the Flux page under the cluster view's `page/` routes. */
+export const FLUX_PAGE_PATH = 'flux';
+
+/** What the overview summarises: the things that deploy, then where they come from. */
+export const OVERVIEW_GROUPS: Array<{ title: string; kinds: string[]; subPath?: string }> = [
+  { title: 'Kustomizations', kinds: ['Kustomization'], subPath: 'kustomizations' },
+  { title: 'HelmReleases', kinds: ['HelmRelease'], subPath: 'helmreleases' },
+  { title: 'Sources', kinds: ['GitRepository', 'OCIRepository', 'HelmRepository', 'HelmChart', 'Bucket'] },
+];
+
+export const OVERVIEW_KINDS: string[] = OVERVIEW_GROUPS.flatMap((g) => g.kinds);
+
 export const RECONCILE_ANNOTATION = 'reconcile.fluxcd.io/requestedAt';
 
 /** Flux API groups, their kinds, and every served version we provide a panel for. */
@@ -80,8 +92,11 @@ export const fluxState = (obj: FluxObject): FluxState => {
   const is = (type: string, status: string) => conditions.some((c) => c.type === type && c.status === status);
   if (is('Stalled', 'True')) return 'stalled';
   if (is('Ready', 'True')) return 'ready';
-  if (is('Reconciling', 'True') || is('Ready', 'Unknown')) return 'reconciling';
+  // A failed object that is being retried reports Reconciling too; it is still failing.
   if (is('Ready', 'False')) return 'failed';
+  if (is('Reconciling', 'True') || is('Ready', 'Unknown')) return 'reconciling';
+  // OCI Helm repositories are static: the controller never reports status for them.
+  if (obj.kind === 'HelmRepository' && obj.spec?.type === 'oci') return 'ready';
   return 'unknown';
 };
 
