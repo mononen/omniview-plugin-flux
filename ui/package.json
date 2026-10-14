@@ -11,14 +11,14 @@
   },
   "dependencies": {
     "@omniviewdev/base-ui": "^0.2.1",
-    "@omniviewdev/runtime": "^0.3.0",
+    "@omniviewdev/runtime": "^0.4.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-icons": "^5.5.0",
     "yaml": "^2.4.1"
   },
   "devDependencies": {
-    "@omniviewdev/vite-plugin": "^0.3.0",
+    "@omniviewdev/vite-plugin": "^0.4.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^4.2.1",
