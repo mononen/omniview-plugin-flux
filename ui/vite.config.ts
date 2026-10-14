@@ -1,11 +1,10 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { omniviewExternals } from "@omniviewdev/vite-plugin";
-import { injectCssIntoEntry, localSharedPackages } from "./vite/omniview";
+import { injectCssIntoEntry } from "./vite/omniview";
 
 export default defineConfig({
   plugins: [
-    localSharedPackages(),
     react(),
     omniviewExternals(),
     injectCssIntoEntry("flux"),
