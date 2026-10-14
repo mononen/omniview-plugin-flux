@@ -1,9 +1,5 @@
 import React from 'react';
-// The host shares the @mui/material root; deep imports would bundle a second copy.
-import { Box } from '@mui/material';
-import { Stack } from '@omniviewdev/ui/layout';
-import { Text } from '@omniviewdev/ui/typography';
-import { Chip } from '@omniviewdev/ui';
+import { Chip, Stack, Text } from '@omniviewdev/base-ui';
 import { useResource, type DrawerContext } from '@omniviewdev/runtime';
 import { LuBox, LuClock } from 'react-icons/lu';
 
@@ -59,6 +55,12 @@ const STATE_COLOR: Record<FluxState, 'success' | 'danger' | 'info' | 'warning' |
   unknown: 'neutral',
 };
 
+const iconStyle: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  color: 'var(--ov-color-brand-500)',
+};
+
 /**
  * Side panel for any Flux object: identity, actions and status are common,
  * the middle is specific to the kind.
@@ -101,18 +103,18 @@ const FluxResourceSidebar: React.FC<Props> = ({ ctx }) => {
   const Details = DETAILS[kind];
 
   return (
-    <Stack direction="column" sx={{ width: '100%', gap: 1.5 }}>
-      <Stack direction="column" sx={{ gap: 0.5 }}>
-        <Stack direction="row" sx={{ gap: 1, alignItems: 'center' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', color: 'primary.main' }}>
+    <Stack direction="column" spacing={3} style={{ width: '100%' }}>
+      <Stack direction="column" spacing={1}>
+        <Stack direction="row" spacing={2} align="center">
+          <span style={iconStyle}>
             <LuBox size={18} />
-          </Box>
-          <Text weight="bold" size="md">{name}</Text>
+          </span>
+          <Text weight="semibold" size="md">{name}</Text>
         </Stack>
         {namespace && (
-          <Text size="xs" color="text.secondary">Namespace: {namespace}</Text>
+          <Text size="xs" tone="muted">Namespace: {namespace}</Text>
         )}
-        <Text size="xs" color="text.secondary">{kind}</Text>
+        <Text size="xs" tone="muted">{kind}</Text>
       </Stack>
 
       {connectionID && name && (
@@ -120,18 +122,18 @@ const FluxResourceSidebar: React.FC<Props> = ({ ctx }) => {
       )}
 
       <Section title="Status">
-        <Stack direction="row" sx={{ gap: 0.5, flexWrap: 'wrap' }}>
+        <Stack direction="row" spacing={1} wrap>
           {isStatic(data) && state !== 'suspended' ? (
-            <Chip size="sm" color="neutral" emphasis="soft" label="No status reported" />
+            <Chip size="sm" color="neutral" variant="soft">No status reported</Chip>
           ) : (
-            <Chip size="sm" color={STATE_COLOR[state]} emphasis="soft" label={STATE_LABEL[state]} />
+            <Chip size="sm" color={STATE_COLOR[state]} variant="soft">{STATE_LABEL[state]}</Chip>
           )}
           {interval && (
-            <Chip size="sm" color="neutral" emphasis="soft" icon={<LuClock size={14} />} label={interval} />
+            <Chip size="sm" color="neutral" variant="soft" startDecorator={<LuClock size={14} />}>{interval}</Chip>
           )}
         </Stack>
         {ready?.message && (
-          <Text size="xs" color="text.secondary" sx={{ mt: 0.5 }}>
+          <Text as="div" size="xs" tone="muted" style={{ marginTop: 4 }}>
             {ready.message}
           </Text>
         )}
@@ -141,7 +143,7 @@ const FluxResourceSidebar: React.FC<Props> = ({ ctx }) => {
 
       {conditions.length > 0 && (
         <Section title="Conditions">
-          <Stack direction="column" sx={{ gap: 1 }}>
+          <Stack direction="column" spacing={2}>
             {conditions.map((c, i) => (
               <ConditionRow key={`${c.type}-${i}`} condition={c} />
             ))}
