@@ -1,10 +1,8 @@
 import React from 'react';
-// The host shares the @mui/material root; deep imports would bundle a second copy.
-import { Box } from '@mui/material';
-import { StatCard } from '@omniviewdev/ui';
 import { usePluginRouter } from '@omniviewdev/runtime';
 import { LuGitBranch } from 'react-icons/lu';
 
+import StatCard, { type StatCardColor } from './StatCard';
 import { FLUX_PAGE_PATH, OVERVIEW_KINDS } from '../flux';
 import { useFluxControllers } from '../useFluxControllers';
 import { countStates, useFluxRows } from '../useFluxRows';
@@ -15,13 +13,6 @@ type Props = {
 };
 
 const ICON = <LuGitBranch size={14} />;
-
-const wrapperSx = {
-  cursor: 'pointer',
-  height: '100%',
-  borderRadius: 1,
-  '&:hover > .MuiCard-root': { borderColor: 'var(--ov-accent-default)' },
-} as const;
 
 /**
  * Flux health on the cluster dashboard: how many Flux resources are ready,
@@ -48,12 +39,12 @@ const FluxWidget: React.FC<Props> = ({ connectionID }) => {
     noControllers && 'no controllers running',
   ].filter(Boolean);
 
-  let color: 'primary' | 'warning' | 'danger' = 'primary';
+  let color: StatCardColor = 'brand';
   if (failing > 0 || controllersDown > 0 || noControllers) color = 'danger';
   else if (suspended > 0) color = 'warning';
 
   return (
-    <Box onClick={() => navigate(`/cluster/${connectionID}/resources/page/${FLUX_PAGE_PATH}`)} sx={wrapperSx}>
+    <div style={{ height: '100%' }}>
       {loaders}
       <StatCard
         value={total}
@@ -61,9 +52,9 @@ const FluxWidget: React.FC<Props> = ({ connectionID }) => {
         description={parts.length > 0 ? parts.join(', ') : 'No Flux resources'}
         icon={ICON}
         color={color}
-        sx={{ height: '100%' }}
+        onClick={() => navigate(`/cluster/${connectionID}/resources/page/${FLUX_PAGE_PATH}`)}
       />
-    </Box>
+    </div>
   );
 };
 

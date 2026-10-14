@@ -1,12 +1,9 @@
 import React from 'react';
-// The host shares the @mui/material root; deep imports would bundle a second copy.
-import { Box, Divider } from '@mui/material';
-import { Chip } from '@omniviewdev/ui';
-import { Stack } from '@omniviewdev/ui/layout';
-import { Text } from '@omniviewdev/ui/typography';
+import { Chip, Separator, Stack, Text } from '@omniviewdev/base-ui';
 import { useResourceTypes, useRightDrawer } from '@omniviewdev/runtime';
 
 import { KUBERNETES_PLUGIN, resolveRefKey, type FluxCondition, type FluxObject } from '../../flux';
+import styles from './parts.module.css';
 
 /** What every per-kind panel body receives. */
 export type DetailProps = { connectionID: string; object: FluxObject };
@@ -14,9 +11,9 @@ export type DetailProps = { connectionID: string; object: FluxObject };
 /** A titled block of the panel, separated from the one above it. */
 export const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
   <>
-    <Divider />
-    <Stack direction="column" sx={{ gap: 0.5 }}>
-      <Text weight="semibold" size="sm" color="text.secondary">{title}</Text>
+    <Separator />
+    <Stack direction="column" spacing={1}>
+      <Text weight="semibold" size="sm" tone="muted">{title}</Text>
       {children}
     </Stack>
   </>
@@ -28,7 +25,9 @@ export type Field = [label: string, value: React.ReactNode];
 const isShown = (value: React.ReactNode): boolean =>
   value !== undefined && value !== null && value !== false && value !== '';
 
-const valueSx = { fontFamily: 'monospace', wordBreak: 'break-all' } as const;
+const valueStyle: React.CSSProperties = { fontFamily: 'var(--ov-font-mono)', wordBreak: 'break-all' };
+const labelStyle: React.CSSProperties = { flexShrink: 0 };
+const fieldRowStyle: React.CSSProperties = { gap: 6 };
 
 /** A section of label/value rows; renders nothing when every row is empty. */
 export const FieldSection: React.FC<{ title: string; rows: Field[]; children?: React.ReactNode }> = ({
@@ -42,10 +41,10 @@ export const FieldSection: React.FC<{ title: string; rows: Field[]; children?: R
   return (
     <Section title={title}>
       {shown.map(([label, value]) => (
-        <Stack key={label} direction="row" sx={{ gap: 0.75, alignItems: 'baseline' }}>
-          <Text size="xs" color="text.secondary" sx={{ flexShrink: 0 }}>{label}:</Text>
+        <Stack key={label} direction="row" spacing={0} align="baseline" style={fieldRowStyle}>
+          <Text size="xs" tone="muted" style={labelStyle}>{label}:</Text>
           {typeof value === 'string' || typeof value === 'number' ? (
-            <Text size="xs" sx={valueSx}>{value}</Text>
+            <Text size="xs" style={valueStyle}>{value}</Text>
           ) : (
             value
           )}
@@ -71,14 +70,6 @@ type RefLinkProps = {
   showKind?: boolean;
 };
 
-const linkSx = {
-  ...valueSx,
-  fontSize: '0.75rem',
-  color: 'primary.main',
-  cursor: 'pointer',
-  '&:hover': { textDecoration: 'underline' },
-} as const;
-
 /** A referenced object; opens its side panel when the cluster serves the kind. */
 export const RefLink: React.FC<RefLinkProps> = ({ connectionID, kind, name, namespace, home, showKind }) => {
   const { types } = useResourceTypes({ pluginID: KUBERNETES_PLUGIN, connectionID });
@@ -88,13 +79,17 @@ export const RefLink: React.FC<RefLinkProps> = ({ connectionID, kind, name, name
 
   // Wildcards in event sources match many objects, so there is nothing to open.
   if (!resourceKey || name === '*') {
-    return <Text size="xs" sx={valueSx}>{label}</Text>;
+    return <Text size="xs" style={valueStyle}>{label}</Text>;
   }
 
   return (
-    <Box
-      component="span"
-      sx={linkSx}
+    <span
+      role="link"
+      tabIndex={0}
+      className={styles.RefLink}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') (e.currentTarget as HTMLElement).click();
+      }}
       onClick={() =>
         showResourceSidebar({
           pluginID: KUBERNETES_PLUGIN,
@@ -107,7 +102,7 @@ export const RefLink: React.FC<RefLinkProps> = ({ connectionID, kind, name, name
       }
     >
       {label}
-    </Box>
+    </span>
   );
 };
 
@@ -121,7 +116,7 @@ export const RefList: React.FC<{
   kind?: string;
   home: string;
 }> = ({ connectionID, refs, kind, home }) => (
-  <Stack direction="column" sx={{ gap: 0.25 }}>
+  <Stack direction="column" spacing={0} style={{ gap: 2 }}>
     {(refs ?? []).map((ref, i) => (
       <RefLink
         key={`${ref.kind}/${ref.namespace}/${ref.name}/${i}`}
@@ -138,31 +133,37 @@ export const RefList: React.FC<{
 
 /** Short values shown as a wrapping row of chips. */
 export const ChipList: React.FC<{ values: string[] | undefined }> = ({ values }) => (
-  <Stack direction="row" sx={{ gap: 0.5, flexWrap: 'wrap' }}>
+  <Stack direction="row" spacing={1} wrap>
     {(values ?? []).map((value) => (
-      <Chip key={value} size="sm" emphasis="outline" label={value} />
+      <Chip key={value} size="sm" variant="outline">{value}</Chip>
     ))}
   </Stack>
 );
 
+const conditionStyle: React.CSSProperties = {
+  padding: 6,
+  borderRadius: 4,
+  backgroundColor: 'var(--ov-color-bg-base)',
+};
+
 export const ConditionRow: React.FC<{ condition: FluxCondition }> = ({ condition }) => {
   const isTrue = condition.status === 'True';
   return (
-    <Box sx={{ p: 0.75, borderRadius: 1, bgcolor: 'background.default' }}>
-      <Stack direction="row" sx={{ gap: 0.5, alignItems: 'center', mb: 0.25 }}>
-        <Chip size="sm" color={isTrue ? 'success' : 'danger'} emphasis="soft" label={condition.type} />
-        {condition.reason && <Text size="xs" color="text.secondary">{condition.reason}</Text>}
+    <div style={conditionStyle}>
+      <Stack direction="row" spacing={1} align="center" style={{ marginBottom: 2 }}>
+        <Chip size="sm" color={isTrue ? 'success' : 'danger'} variant="soft">{condition.type}</Chip>
+        {condition.reason && <Text size="xs" tone="muted">{condition.reason}</Text>}
       </Stack>
       {condition.message && (
-        <Text size="xs" color="text.secondary" sx={{ pl: 0.5 }}>
+        <Text as="div" size="xs" tone="muted" style={{ paddingLeft: 4 }}>
           {condition.message}
         </Text>
       )}
       {condition.lastTransitionTime && (
-        <Text size="xs" color="text.disabled" sx={{ pl: 0.5, mt: 0.25 }}>
+        <Text as="div" size="xs" tone="subtle" style={{ paddingLeft: 4, marginTop: 2 }}>
           {condition.lastTransitionTime}
         </Text>
       )}
-    </Box>
+    </div>
   );
 };

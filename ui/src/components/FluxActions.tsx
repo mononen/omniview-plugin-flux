@@ -1,6 +1,5 @@
 import React from 'react';
-// The host shares the @mui/material root; deep imports would bundle a second copy.
-import { Button, Stack } from '@mui/material';
+import { Button, Stack } from '@omniviewdev/base-ui';
 import { useResource, useResourceMutations, useResourceTypes } from '@omniviewdev/runtime';
 import { LuPause, LuPlay, LuRefreshCw } from 'react-icons/lu';
 
@@ -25,7 +24,8 @@ type Props = {
   onChanged?: () => void;
 };
 
-const buttonSx = { textTransform: 'none', whiteSpace: 'nowrap' } as const;
+const buttonStyle: React.CSSProperties = { whiteSpace: 'nowrap' };
+const rowStyle: React.CSSProperties = { gap: 6 };
 
 /**
  * Reconcile / suspend / resume controls for a Flux object. Changes are written
@@ -62,14 +62,15 @@ const FluxActions: React.FC<Props> = ({ connectionID, resourceKey, object, dense
   const stop = (e: React.MouseEvent) => e.stopPropagation();
 
   return (
-    <Stack direction="row" spacing={0.75} onClick={stop} sx={{ flexWrap: 'wrap', rowGap: 0.75 }}>
+    <Stack direction="row" spacing={0} wrap onClick={stop} style={rowStyle}>
       <Button
-        size="small"
-        variant="outlined"
+        size="sm"
+        variant="outline"
+        color="brand"
         disabled={busy || suspended}
-        startIcon={<LuRefreshCw size={14} />}
+        startDecorator={<LuRefreshCw size={14} />}
         onClick={() => void apply(withReconcileRequest(object))}
-        sx={buttonSx}
+        style={buttonStyle}
       >
         Reconcile
       </Button>
@@ -83,13 +84,13 @@ const FluxActions: React.FC<Props> = ({ connectionID, resourceKey, object, dense
       )}
       {isSuspendable(object) && (
         <Button
-          size="small"
-          variant="outlined"
+          size="sm"
+          variant="outline"
           color={suspended ? 'success' : 'warning'}
           disabled={busy}
-          startIcon={suspended ? <LuPlay size={14} /> : <LuPause size={14} />}
+          startDecorator={suspended ? <LuPlay size={14} /> : <LuPause size={14} />}
           onClick={() => void apply(withSuspend(object, !suspended))}
-          sx={buttonSx}
+          style={buttonStyle}
         >
           {suspended ? 'Resume' : 'Suspend'}
         </Button>
@@ -155,12 +156,13 @@ const ReconcileWithSourceButton: React.FC<WithSourceProps & { sourceKey: string 
 
   return (
     <Button
-      size="small"
-      variant="outlined"
+      size="sm"
+      variant="outline"
+      color="brand"
       disabled={disabled || busy || !sourceObject}
-      startIcon={<LuRefreshCw size={14} />}
+      startDecorator={<LuRefreshCw size={14} />}
       onClick={() => void run()}
-      sx={buttonSx}
+      style={buttonStyle}
     >
       Reconcile with source
     </Button>

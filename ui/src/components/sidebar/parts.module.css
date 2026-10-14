@@ -1,0 +1,12 @@
+.RefLink {
+  font-family: var(--ov-font-mono);
+  word-break: break-all;
+  font-size: 0.75rem;
+  color: var(--ov-color-brand-500);
+  cursor: pointer;
+}
+
+.RefLink:hover,
+.RefLink:focus-visible {
+  text-decoration: underline;
+}

@@ -10,12 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@emotion/react": "^11.11.4",
-    "@emotion/styled": "^11.11.0",
-    "@mui/material": "^7.3.8",
     "@omniviewdev/base-ui": "^0.2.1",
     "@omniviewdev/runtime": "^0.3.0",
-    "@omniviewdev/ui": "^0.3.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-icons": "^5.5.0",
